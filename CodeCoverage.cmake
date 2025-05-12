@@ -1,4 +1,7 @@
 
+# Module made for test coverage determining
+# Can be used with both GCC and Clang.
+#
 # USAGE:
 #
 # 1. Copy this file into your cmake modules path.
