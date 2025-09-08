@@ -1,15 +1,45 @@
 
 include(CheckCXXCompilerFlag)
 
-check_cxx_compiler_flag("-fsanitize=address" ASAN_CXX_SUPPORTED)
+# check Address Sanitizer support
+set(CMAKE_REQUIRED_FLAGS "-fsanitize=address")
+set(CMAKE_REQUIRED_LIBRARIES "-fsanitize=address")
+check_cxx_source_compiles(
+  "int main() { return 0; }"
+  ASAN_CXX_SUPPORTED
+)
+unset(CMAKE_REQUIRED_FLAGS)
+unset(CMAKE_REQUIRED_LIBRARIES)
 
-check_cxx_compiler_flag("-fsanitize=memory" MSAN_CXX_SUPPORTED)
 
+# check Memory Sanitizer support
+set(CMAKE_REQUIRED_FLAGS "-fsanitize=memory")
+set(CMAKE_REQUIRED_LIBRARIES "-fsanitize=memory")
+check_cxx_source_compiles(
+  "int main() { return 0; }"
+  MSAN_CXX_SUPPORTED
+)
+unset(CMAKE_REQUIRED_FLAGS)
+unset(CMAKE_REQUIRED_LIBRARIES)
+
+
+# check Leak Sanitizer support
 check_cxx_compiler_flag("-fsanitize=leak" LSAN_CXX_SUPPORTED)
 
+
+# check Undefined behavior Sanitizer support
 check_cxx_compiler_flag("-fsanitize=undefined" UBSAN_CXX_SUPPORTED)
 
-check_cxx_compiler_flag("-fsanitize=thread" TSAN_CXX_SUPPORTED)
+
+# check Thread Sanitizer support
+set(CMAKE_REQUIRED_FLAGS "-fsanitize=thread")
+set(CMAKE_REQUIRED_LIBRARIES "-fsanitize=thread -pthread")
+check_cxx_source_compiles(
+  "#include <thread>\nint main() { std::thread t; t.join(); return 0; }"
+  TSAN_CXX_SUPPORTED
+)
+unset(CMAKE_REQUIRED_FLAGS)
+unset(CMAKE_REQUIRED_LIBRARIES)
 
 
 macro(add_address_sanitizer)
@@ -146,9 +176,11 @@ else()
 endif()
 
 
+# Prefer use external llvm symbolizer on UNIX
 if(UNIX)
     set(SYMBOLIZER_PATH "/usr/bin/llvm-symbolizer")
     add_compile_definitions("symbolize=1:external_symbolizer_path=${SYMBOLIZER_PATH}:verbosity=2")
 else()
     add_compile_definitions("symbolize=1:verbosity=2")
 endif()
+
